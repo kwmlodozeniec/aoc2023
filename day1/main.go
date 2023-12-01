@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"strconv"
-	"strings"
 	"unicode"
 )
 
@@ -52,23 +51,6 @@ func part1() {
 		sum += number
 	}
 	fmt.Println("Part 1: ", sum)
-}
-
-func findAllSubstringPositions(fullString, subString string) []int {
-	positions := []int{}
-	index := -1
-
-	for {
-		index = strings.Index(fullString, subString)
-		if index == -1 {
-			break
-		}
-
-		positions = append(positions, index)
-		fullString = fullString[index+len(subString):]
-	}
-
-	return positions
 }
 
 func part2() {
