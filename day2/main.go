@@ -49,13 +49,11 @@ func part1() {
 
 				if ball_count > colour_limits[ball_colour] {
 					game_valid = false
-					fmt.Println("Game", game_id, "invalid")
 					break
 				}
 			}
 		}
 		if game_valid {
-			fmt.Println("Game", game_id, "valid")
 			sum += game_id
 		}
 	}
@@ -98,9 +96,7 @@ func part2() {
 				}
 			}
 		}
-		fmt.Println("Colour limits: ", colour_counts)
 		product := colour_counts["red"] * colour_counts["green"] * colour_counts["blue"]
-		fmt.Println("Product: ", product)
 		sum += product
 	}
 	fmt.Println("Part 2: ", sum)

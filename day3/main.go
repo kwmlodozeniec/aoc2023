@@ -8,21 +8,21 @@ import (
 	"strconv"
 )
 
-type partNumber struct {
-	line     int
-	startIdx int
-	endIdx   int
-	value    int
-	isValid  bool
+type part_number struct {
+	line      int
+	start_idx int
+	end_idx   int
+	value     int
+	is_valid  bool
 }
 
 type symbol struct {
-	line      int
-	idx       int
-	value     string
-	isGear    bool
-	gearSizeA int
-	gearSizeB int
+	line        int
+	idx         int
+	value       string
+	is_gear     bool
+	gear_size_a int
+	gear_size_b int
 }
 
 func check(e error) {
@@ -31,38 +31,36 @@ func check(e error) {
 	}
 }
 
-func findNumbers(line string, lineNumber int) ([]partNumber, error) {
-	partNumbers := []partNumber{}
+func find_numbers(line string, line_number int) ([]part_number, error) {
+	part_numbers := []part_number{}
 
 	numbers := regexp.MustCompile(`\b\d+\b`).FindAllStringIndex(line, -1)
 	for _, number := range numbers {
-		// fmt.Println("Line: ", line, "Number start/ends: ", number)
-		partNumber := partNumber{
-			line:     lineNumber,
-			startIdx: number[0],
-			endIdx:   number[1] - 1,
-			value:    0,
-			isValid:  false,
+		part_number := part_number{
+			line:      line_number,
+			start_idx: number[0],
+			end_idx:   number[1] - 1,
+			value:     0,
+			is_valid:  false,
 		}
-		value, err := strconv.Atoi(line[partNumber.startIdx : partNumber.endIdx+1])
+		value, err := strconv.Atoi(line[part_number.start_idx : part_number.end_idx+1])
 		check(err)
-		partNumber.value = value
-		partNumbers = append(partNumbers, partNumber)
+		part_number.value = value
+		part_numbers = append(part_numbers, part_number)
 	}
 
-	return partNumbers, nil
+	return part_numbers, nil
 }
 
-func findSymbols(line string, lineNumber int) ([]symbol, error) {
+func find_symbols(line string, line_number int) ([]symbol, error) {
 	symbols := []symbol{}
 
-	foundSymbols := regexp.MustCompile(`[^\w\d.\n\r]`).FindAllStringIndex(line, -1)
-	for _, foundSymbol := range foundSymbols {
-		// fmt.Println("Line: ", line, "Symbol index: ", foundSymbol)
+	found_symbols := regexp.MustCompile(`[^\w\d.\n\r]`).FindAllStringIndex(line, -1)
+	for _, found_symbol := range found_symbols {
 		symbol := symbol{
-			line:  lineNumber,
-			idx:   foundSymbol[0],
-			value: line[foundSymbol[0]:foundSymbol[1]],
+			line:  line_number,
+			idx:   found_symbol[0],
+			value: line[found_symbol[0]:found_symbol[1]],
 		}
 		symbols = append(symbols, symbol)
 	}
@@ -70,49 +68,47 @@ func findSymbols(line string, lineNumber int) ([]symbol, error) {
 	return symbols, nil
 }
 
-func validatePartNumber(partNumber partNumber, symbols []symbol) (partNumber, error) {
+func validate_part_number(part part_number, symbols []symbol) (part_number, error) {
 	for _, symbol := range symbols {
-		if symbol.line >= partNumber.line-1 && // Check if symbol is on the line before or on the same line
-			symbol.line <= partNumber.line+1 && // Check if symbol is on the line after or on the same line
-			symbol.idx >= partNumber.startIdx-1 && // Check if symbol index overlaps with the part number from the left
-			symbol.idx <= partNumber.endIdx+1 { // Check if symbol index overlaps with the part number from the right  {
-			partNumber.isValid = true
-			// fmt.Println("Part number: ", partNumber.value, "is valid")
+		if symbol.line >= part.line-1 && // Check if symbol is on the line before or on the same line
+			symbol.line <= part.line+1 && // Check if symbol is on the line after or on the same line
+			symbol.idx >= part.start_idx-1 && // Check if symbol index overlaps with the part number from the left
+			symbol.idx <= part.end_idx+1 { // Check if symbol index overlaps with the part number from the right  {
+			part.is_valid = true
 		}
 	}
-	return partNumber, nil
+	return part, nil
 }
 
-func validateGears(partNumbers []partNumber, symbols []symbol) ([]symbol, error) {
+func validate_gears(part_numbers []part_number, symbols []symbol) ([]symbol, error) {
 	gears := []symbol{}
 	for _, symbol := range symbols {
 		if symbol.value == "*" {
-			// fmt.Println("Gear symbol: ", symbol, "Index: ", symbol.idx)
-			surroundingPartNumbers := []partNumber{}
+			surrounding_part_numbers := []part_number{}
 
-			for _, partNumber := range partNumbers {
-				if partNumber.line == symbol.line || partNumber.line == symbol.line-1 || partNumber.line == symbol.line+1 {
-					surroundingPartNumbers = append(surroundingPartNumbers, partNumber)
+			for _, part_number := range part_numbers {
+				if part_number.line == symbol.line || part_number.line == symbol.line-1 || part_number.line == symbol.line+1 {
+					surrounding_part_numbers = append(surrounding_part_numbers, part_number)
 					// fmt.Println("Surrounding part number: ", partNumber.value, "Start index: ", partNumber.startIdx, "End index: ", partNumber.endIdx)
 				}
 			}
 
-			adjacentPartNumbers := []partNumber{}
-			for _, partNumber := range surroundingPartNumbers {
-				if symbol.idx >= partNumber.startIdx &&
-					symbol.idx <= partNumber.endIdx ||
-					symbol.idx-partNumber.startIdx == 1 ||
-					partNumber.startIdx-symbol.idx == 1 ||
-					symbol.idx-partNumber.endIdx == -1 ||
-					partNumber.endIdx-symbol.idx == -1 {
-					adjacentPartNumbers = append(adjacentPartNumbers, partNumber)
+			adjacent_part_numbers := []part_number{}
+			for _, part_number := range surrounding_part_numbers {
+				if symbol.idx >= part_number.start_idx &&
+					symbol.idx <= part_number.end_idx ||
+					symbol.idx-part_number.start_idx == 1 ||
+					part_number.start_idx-symbol.idx == 1 ||
+					symbol.idx-part_number.end_idx == -1 ||
+					part_number.end_idx-symbol.idx == -1 {
+					adjacent_part_numbers = append(adjacent_part_numbers, part_number)
 					// fmt.Println("Adjacent part number: ", partNumber.value)
 				}
 			}
-			if len(adjacentPartNumbers) == 2 {
-				symbol.isGear = true
-				symbol.gearSizeA = adjacentPartNumbers[0].value
-				symbol.gearSizeB = adjacentPartNumbers[1].value
+			if len(adjacent_part_numbers) == 2 {
+				symbol.is_gear = true
+				symbol.gear_size_a = adjacent_part_numbers[0].value
+				symbol.gear_size_b = adjacent_part_numbers[1].value
 				gears = append(gears, symbol)
 			}
 		}
@@ -131,31 +127,29 @@ func part1() {
 
 	// Iterate over the lines
 	line := 0
-	allPartNumbers := []partNumber{}
-	allSymbols := []symbol{}
+	all_part_numbers := []part_number{}
+	all_symbols := []symbol{}
 	for scanner.Scan() {
-		numbers, err := findNumbers(scanner.Text(), line)
+		numbers, err := find_numbers(scanner.Text(), line)
 		check(err)
-		symbols, err := findSymbols(scanner.Text(), line)
+		symbols, err := find_symbols(scanner.Text(), line)
 		check(err)
-		allPartNumbers = append(allPartNumbers, numbers...)
-		allSymbols = append(allSymbols, symbols...)
+		all_part_numbers = append(all_part_numbers, numbers...)
+		all_symbols = append(all_symbols, symbols...)
 		line++
 	}
-	// fmt.Println(allPartNumbers)
-	// fmt.Println(allSymbols)
 
 	// Validate part numbers
-	validatedPartNumbers := []partNumber{}
-	for _, part := range allPartNumbers {
-		part, err := validatePartNumber(part, allSymbols)
+	validated_part_numbers := []part_number{}
+	for _, part := range all_part_numbers {
+		part, err := validate_part_number(part, all_symbols)
 		check(err)
-		validatedPartNumbers = append(validatedPartNumbers, part)
+		validated_part_numbers = append(validated_part_numbers, part)
 	}
 
 	sum := 0
-	for _, part := range validatedPartNumbers {
-		if part.isValid {
+	for _, part := range validated_part_numbers {
+		if part.is_valid {
 			sum += part.value
 		}
 	}
@@ -173,36 +167,34 @@ func part2() {
 
 	// Iterate over the lines
 	line := 0
-	allPartNumbers := []partNumber{}
-	allSymbols := []symbol{}
+	all_part_numbers := []part_number{}
+	all_symbols := []symbol{}
 	for scanner.Scan() {
-		numbers, err := findNumbers(scanner.Text(), line)
+		numbers, err := find_numbers(scanner.Text(), line)
 		check(err)
-		symbols, err := findSymbols(scanner.Text(), line)
+		symbols, err := find_symbols(scanner.Text(), line)
 		check(err)
-		allPartNumbers = append(allPartNumbers, numbers...)
-		allSymbols = append(allSymbols, symbols...)
+		all_part_numbers = append(all_part_numbers, numbers...)
+		all_symbols = append(all_symbols, symbols...)
 		line++
 	}
-	// fmt.Println(allPartNumbers)
-	// fmt.Println(allSymbols)
 
 	// Validate part numbers
-	validatedPartNumbers := []partNumber{}
-	for _, part := range allPartNumbers {
-		part, err := validatePartNumber(part, allSymbols)
+	validated_part_numbers := []part_number{}
+	for _, part := range all_part_numbers {
+		part, err := validate_part_number(part, all_symbols)
 		check(err)
-		validatedPartNumbers = append(validatedPartNumbers, part)
+		validated_part_numbers = append(validated_part_numbers, part)
 	}
 
 	// Validate gears
-	gears, err := validateGears(validatedPartNumbers, allSymbols)
+	gears, err := validate_gears(validated_part_numbers, all_symbols)
 	check(err)
 
 	// Calculate sum of ratios
 	sum := 0
 	for _, gear := range gears {
-		sum += gear.gearSizeA * gear.gearSizeB
+		sum += gear.gear_size_a * gear.gear_size_b
 	}
 	fmt.Println("Part 2: ", sum)
 }

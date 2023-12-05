@@ -8,7 +8,7 @@ import (
 	"unicode"
 )
 
-var digitWords = map[string]string{
+var digit_words = map[string]string{
 	"one":   "1",
 	"two":   "2",
 	"three": "3",
@@ -76,7 +76,7 @@ func part2() {
 			}
 
 			// iterate over the digit words
-			for word, digit := range digitWords {
+			for word, digit := range digit_words {
 				if char == rune(word[0]) { // if the first letter matches
 					// check if the word fits in the line and is in the right place
 					if len(word)+idx <= len(line) && word == line[idx:len(word)+idx] {
