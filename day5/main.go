@@ -21,7 +21,7 @@ type seed struct {
 type seeds []seed
 
 type generic_map struct {
-	name              string
+	name           string
 	destination_start int
 	source_start      int
 	length            int
@@ -55,31 +55,31 @@ func part1() {
 
 	seeds_line := chunks[0]
 	map_data_blocks := chunks[1:]
+	fmt.Println("Seeds line: ", seeds_line)
+	fmt.Println("Map data blocks: ", map_data_blocks)
 
 	// Parse the seeds
 	seeds := find_numbers(seeds_line)
-	fmt.Println(seeds)
+	fmt.Println("Seeds: ", seeds)
 
 	map_list := map[int]string{
-		0: "seed_to_soil",
-		1: "soil_to_fertilizer",
-		2: "fertilizer_to_water",
-		3: "water_to_light",
-		4: "light_to_temp",
-		5: "temp_to_humidity",
-		6: "humidity_to_location",
+		0: "seed-to-soil",
+		1: "soil-to-fertilizer",
+		2: "fertilizer-to-water",
+		3: "water-to-light",
+		4: "light-to-temperature",
+		5: "temperature-to-humidity",
+		6: "humidity-to-location",
 	}
 	maps := []generic_map{}
-
-	fmt.Println(map_list, maps)
+	fmt.Println("Map list: ", map_list, " Maps: ", maps)
 
 	// Build the maps
 	for _, map_data := range map_data_blocks {
-		lines := strings.Split(map_data, "\n")[1:]
-
-		for _, map_data := range lines {
-
-		}
+		lines := strings.Split(map_data, "\n")
+		map_name := strings.Split(lines[0], " map:")[0]
+		map_data_lines := lines[1:]
+		fmt.Println("Map name: ", map_name, " Map data lines: ", map_data_lines)
 	}
 }
 
