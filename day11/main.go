@@ -3,12 +3,11 @@ package main
 import (
 	"fmt"
 	"os"
-	"slices"
 	"strings"
 )
 
 type point struct {
-	x, y int
+	row, col int
 }
 
 type galaxy struct {
@@ -16,10 +15,13 @@ type galaxy struct {
 	loc  point
 }
 
-func get_lines(file string) []string {
+func get_lines(file string) ([]string, []int, []int) {
 	data, _ := os.ReadFile(file)
 	lines := strings.Split(string(data), "\n")
-	return lines[:len(lines)-1]
+	lines = lines[:len(lines)-1]
+	empty_rows := get_empty_rows(lines)
+	empty_cols := get_empty_cols(lines)
+	return lines, empty_rows, empty_cols
 }
 
 func get_empty_rows(grid []string) []int {
@@ -34,7 +36,6 @@ func get_empty_rows(grid []string) []int {
 			}
 		}
 		if empty_row {
-			fmt.Println("Empty row:", row)
 			empty_rows = append(empty_rows, row)
 		}
 	}
@@ -53,36 +54,10 @@ func get_empty_cols(grid []string) []int {
 			}
 		}
 		if empty_col {
-			fmt.Println("Empty col:", col)
 			empty_cols = append(empty_cols, col)
 		}
 	}
 	return empty_cols
-}
-
-func expand_grid(grid []string) []string {
-	empty_rows := get_empty_rows(grid)
-	empty_cols := get_empty_cols(grid)
-
-	// Add empty rows
-	new_grid := []string{}
-	for row_idx, row := range grid {
-		new_grid = append(new_grid, row)
-		if slices.Contains(empty_rows, row_idx) {
-			new_grid = append(new_grid, row)
-		}
-	}
-
-	// Add empty cols
-	for row, line := range new_grid {
-		new_line := strings.Split(line, "")
-		for idx, col_idx := range empty_cols {
-			new_line = append(new_line[:col_idx+idx], append([]string{"."}, new_line[col_idx+idx:]...)...)
-		}
-		new_grid[row] = strings.Join(new_line, "")
-	}
-
-	return new_grid
 }
 
 func get_galaxy_locations(grid []string) []galaxy {
@@ -100,48 +75,99 @@ func get_galaxy_locations(grid []string) []galaxy {
 	return galaxies
 }
 
-func gen_combinations(galaxies []galaxy, count int) [][]galaxy {
-	result := [][]galaxy{}
-	current := []galaxy{}
-
-	var backtrack func(start int)
-	backtrack = func(start int) {
-		if len(current) == count {
-			result = append(result, append([]galaxy{}, current...))
-			return
-		}
-		for i := start; i < len(galaxies); i++ {
-			current = append(current, galaxies[i])
-			backtrack(i + 1)
-			current = current[:len(current)-1]
+func is_in_list(list []int, number int) bool {
+	for _, item := range list {
+		if item == number {
+			return true
 		}
 	}
+	return false
+}
 
-	backtrack(0)
-	return result
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
+
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
 }
 
 func part1(input_file string) {
-	grid := get_lines(input_file)
-	for idx, line := range grid {
-		fmt.Printf("Row %2d: %s\n", idx, line)
-	}
-	grid = expand_grid(grid)
-	for idx, line := range grid {
-		fmt.Printf("Row %2d: %s\n", idx, line)
-	}
+	grid, empty_rows, empty_cols := get_lines(input_file)
 
 	galaxies := get_galaxy_locations(grid)
-	fmt.Println(galaxies)
 
-	all_combinations := gen_combinations(galaxies, 2)
-	for _, comb := range all_combinations {
-		fmt.Println(comb)
+	expansion_factor := 2
+	total := 0
+
+	for idx, point := range galaxies {
+		for _, to_the_left := range galaxies[:idx] {
+			// get min/max in case numbers are out of order
+			row_min := min(point.loc.row, to_the_left.loc.row)
+			row_max := max(point.loc.row, to_the_left.loc.row)
+			col_min := min(point.loc.col, to_the_left.loc.col)
+			col_max := max(point.loc.col, to_the_left.loc.col)
+
+			for r := row_min; r < row_max; r++ {
+				if is_in_list(empty_rows, r) {
+					total += expansion_factor
+				} else {
+					total++
+				}
+			}
+			for c := col_min; c < col_max; c++ {
+				if is_in_list(empty_cols, c) {
+					total += expansion_factor
+				} else {
+					total++
+				}
+			}
+		}
 	}
+
+	fmt.Println("Part 1:", total)
 }
 
 func part2(input_file string) {
+	grid, empty_rows, empty_cols := get_lines(input_file)
 
+	galaxies := get_galaxy_locations(grid)
+
+	expansion_factor := 1000000
+	total := 0
+
+	for idx, point := range galaxies {
+		for _, to_the_left := range galaxies[:idx] {
+			// get min/max in case numbers are out of order
+			row_min := min(point.loc.row, to_the_left.loc.row)
+			row_max := max(point.loc.row, to_the_left.loc.row)
+			col_min := min(point.loc.col, to_the_left.loc.col)
+			col_max := max(point.loc.col, to_the_left.loc.col)
+
+			for r := row_min; r < row_max; r++ {
+				if is_in_list(empty_rows, r) {
+					total += expansion_factor
+				} else {
+					total++
+				}
+			}
+			for c := col_min; c < col_max; c++ {
+				if is_in_list(empty_cols, c) {
+					total += expansion_factor
+				} else {
+					total++
+				}
+			}
+		}
+	}
+
+	fmt.Println("Part 2:", total)
 }
 
 func main() {
